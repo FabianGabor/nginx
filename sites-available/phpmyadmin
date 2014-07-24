@@ -1,0 +1,73 @@
+server 
+{
+	server_name php.nspiron.com;
+	
+	include /etc/nginx/php.conf;
+	root /usr/share/phpmyadmin;
+	
+	location /phpmyadmin {
+		   root /usr/share/phpmyadmin;
+		   index index.php index.html index.htm;
+		   location ~ ^/phpmyadmin/(.+\.php)$ {
+				   try_files $uri =404;
+				   root /usr/share/phpmyadmin;
+				   #fastcgi_pass 127.0.0.1:9000;
+				   fastcgi_pass unix:/var/run/php5-fpm.sock;
+				   fastcgi_index index.php;
+				   fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+				   include /etc/nginx/fastcgi_params;
+		   }
+		   location ~* ^/phpmyadmin/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+				   root /usr/share/phpmyadmin;
+		   }
+	}
+	location /phpMyAdmin {
+		   rewrite ^/* /phpmyadmin last;
+	}
+	
+	location /phpmyadmin {
+		   root /usr/share/phpmyadmin;
+		   index index.php index.html index.htm;
+		   location ~ ^/phpmyadmin/(.+\.php)$ {
+				   try_files $uri =404;
+				   root /usr/share/phpmyadmin;
+				   #fastcgi_pass 127.0.0.1:9000;
+				   fastcgi_pass unix:/var/run/php5-fpm.sock;
+				   fastcgi_index index.php;
+				   fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+				   include /etc/nginx/fastcgi_params;
+		   }
+		   location ~* ^/phpmyadmin/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+				   root /usr/share/phpmyadmin;
+		   }
+	}
+	location /phpMyAdmin {
+		   rewrite ^/* /phpmyadmin last;
+	}
+
+	location ~ \.php$ {
+		##
+		# Fastcgi cache
+		##
+		set $skip_cache 1;
+                if ($cache_uri != "null cache") {
+                	add_header X-Cache-Debug "$cache_uri $cookie_nocache $arg_nocache$arg_comment $http_pragma $http_authorization";
+			set $skip_cache 0;
+		}
+		fastcgi_cache_bypass $skip_cache;
+       		fastcgi_cache microcache;
+       	        fastcgi_cache_key $scheme$host$request_uri$request_method;
+        	fastcgi_cache_valid any 8m;
+        	fastcgi_cache_use_stale updating;
+               	fastcgi_cache_bypass $http_pragma;
+                fastcgi_cache_use_stale updating error timeout invalid_header http_500;
+
+		##
+		# WordPress PHP
+		##
+		try_files $uri /index.php;
+		include fastcgi_params;
+		fastcgi_read_timeout 300;
+		fastcgi_pass unix:/var/run/php5-fpm.sock;
+	}
+}
